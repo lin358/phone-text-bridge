@@ -12,6 +12,7 @@
 - 文本发送到电脑当前光标位置
 - 电脑端通过剪贴板和 `Ctrl+V` 完成粘贴
 - 发送成功后自动清空手机文本框
+- 如果电脑当前没有检测到可输入文字的位置，手机文本会保留
 - 支持 HTTP 或本地自签名 HTTPS
 - 适合 Windows 自用小工具
 
@@ -38,28 +39,28 @@ BRIDGE_SSL_CERTFILE=certs/bridge-cert.pem
 BRIDGE_SSL_KEYFILE=certs/bridge-key.pem
 ```
 
-后台启动：
-
-```powershell
-wscript start_hidden.vbs
-```
-
-可见窗口启动：
+启动服务：
 
 ```powershell
 start_visible.bat
 ```
 
-停止服务：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File stop.ps1
-```
-
-电脑和手机连接同一个 Wi-Fi 或同一个手机热点后，用手机浏览器打开启动时显示的地址，例如：
+启动后窗口里会显示手机访问地址，例如：
 
 ```text
 https://192.168.31.122:8766
+```
+
+电脑和手机连接同一个 Wi-Fi 或同一个手机热点后，用手机浏览器打开这个地址。
+
+使用时，先把电脑光标放到要输入的文字框里，再从手机页面发送文本。发送成功后，手机文本框会自动清空。如果电脑当前没有检测到可输入文字的位置，文本不会被清空。
+
+停止服务：关闭启动窗口，或在窗口里按 `Ctrl+C`。手机关掉网页只会关闭手机页面，不会停止电脑上的服务。
+
+如果需要强制停止占用 `8766` 端口的服务，可以运行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File stop.ps1
 ```
 
 第一次访问自签名 HTTPS 地址时，手机浏览器可能会提示证书不受信任。这个证书只用于本地局域网访问，确认地址是自己的电脑后，选择继续访问即可。
@@ -73,15 +74,15 @@ https://192.168.31.122:8766
 需要注意：
 
 - 局域网内能访问这个服务的人，理论上都可以向你的电脑当前光标位置发送文本。
-- 粘贴动作发生在电脑当前焦点所在位置。如果光标在聊天窗口、网页表单、命令行或其他敏感输入框里，文字会被粘贴到那里。
+- 粘贴动作发生在电脑当前焦点所在位置。使用前先确认电脑光标确实在你想输入的文字框里。
+- 当前版本会先检查 Windows 是否报告了文本插入光标；这个判断偏保守，某些特殊软件可能无法识别。
 - HTTPS 使用的是本地自签名证书，只解决浏览器访问 HTTPS 的基础需求，不等于公网级安全部署。
 - `.env`、证书私钥和日志不应提交到 GitHub。
 
 建议：
 
 - 只在自己的家庭网络、个人热点等可信环境下使用。
-- 使用前先确认电脑当前光标位置。
-- 不要在公共网络、公司网络或不可信局域网中长期后台运行。
+- 不要在公共网络、公司网络或不可信局域网中长期运行。
 - 如需更强保护，可以后续增加访问口令或一次性 token。
 
 ## 设计取舍
@@ -101,6 +102,8 @@ https://192.168.31.122:8766
 Phone Text Bridge is a tiny local tool that sends text from a phone web page to the active cursor position on a Windows PC.
 
 Run the FastAPI service on your computer, open `http://<your-lan-ip>:8766` or `https://<your-lan-ip>:8766` on your phone, type or dictate text with your phone keyboard, then tap the send button. The PC copies the text to the clipboard and presses `Ctrl+V`, so the text appears wherever the current cursor is.
+
+If the PC does not report an active text caret, the phone text is kept instead of being cleared.
 
 It does not include speech recognition, does not call any cloud ASR API, and does not require a mobile app. Speech input is handled by your phone keyboard or input method.
 
