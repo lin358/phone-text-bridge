@@ -29,7 +29,7 @@ async def paste_plain_text(payload: dict) -> JSONResponse:
         {
             "attempted": result.attempted,
             "verified": result.verified_target,
-            "clear": result.attempted and result.verified_target,
+            "clear": result.attempted,
         }
     )
 
@@ -103,7 +103,7 @@ PHONE_PAGE = r"""
 <body>
   <main>
     <h1>手机文本传到电脑</h1>
-    <p class="hint">先把电脑光标放到要输入的文字框里，再在手机上输入或语音输入。确认检测到文本光标时，发送成功后会自动清空。</p>
+    <p class="hint">先把电脑光标放到要输入的文字框里，再在手机上输入或语音输入。电脑端执行粘贴动作后，手机文本会自动清空。</p>
     <div class="status" id="status">准备好了</div>
     <textarea id="text" autofocus placeholder="在这里输入，或使用手机语音输入法"></textarea>
   </main>
