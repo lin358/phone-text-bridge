@@ -1,0 +1,8 @@
+.env
+*.log
+*.err.log
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+certs/*.pem
