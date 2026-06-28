@@ -2,12 +2,19 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import ctypes
 from ctypes import wintypes
 import time
 
 import pyperclip
 from pynput.keyboard import Controller, Key
+
+
+@dataclass(frozen=True)
+class PasteResult:
+    attempted: bool
+    verified_target: bool
 
 
 class RECT(ctypes.Structure):
@@ -60,11 +67,12 @@ def active_text_field_available() -> bool:
     return bool(info.hwndCaret)
 
 
-def paste_text(text: str) -> bool:
+def paste_text(text: str) -> PasteResult:
     cleaned = text.strip()
-    if not cleaned or not active_text_field_available():
-        return False
+    if not cleaned:
+        return PasteResult(attempted=False, verified_target=False)
 
+    verified_target = active_text_field_available()
     keyboard = Controller()
     previous = pyperclip.paste()
     pyperclip.copy(cleaned)
@@ -74,4 +82,4 @@ def paste_text(text: str) -> bool:
         keyboard.release("v")
     time.sleep(0.1)
     pyperclip.copy(previous)
-    return True
+    return PasteResult(attempted=True, verified_target=verified_target)

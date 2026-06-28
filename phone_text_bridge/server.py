@@ -24,8 +24,14 @@ async def index() -> str:
 @app.post("/api/paste-text")
 async def paste_plain_text(payload: dict) -> JSONResponse:
     text = str(payload.get("text", "")).strip()
-    pasted = paste_text(text) if text else False
-    return JSONResponse({"ok": pasted})
+    result = paste_text(text)
+    return JSONResponse(
+        {
+            "attempted": result.attempted,
+            "verified": result.verified_target,
+            "clear": result.attempted and result.verified_target,
+        }
+    )
 
 
 def get_lan_ip() -> str:
@@ -97,7 +103,7 @@ PHONE_PAGE = r"""
 <body>
   <main>
     <h1>手机文本传到电脑</h1>
-    <p class="hint">先把电脑光标放到要输入的文字框里，再在手机上输入或语音输入。发送成功后，手机里的文字会自动清空。</p>
+    <p class="hint">先把电脑光标放到要输入的文字框里，再在手机上输入或语音输入。确认检测到文本光标时，发送成功后会自动清空。</p>
     <div class="status" id="status">准备好了</div>
     <textarea id="text" autofocus placeholder="在这里输入，或使用手机语音输入法"></textarea>
   </main>
@@ -129,12 +135,14 @@ PHONE_PAGE = r"""
           body: JSON.stringify({ text })
         });
         const data = await response.json();
-        if (data.ok) {
+        if (data.clear) {
           textEl.value = "";
           textEl.focus();
           statusEl.textContent = "已发送到电脑，文本已清空";
+        } else if (data.attempted) {
+          statusEl.textContent = "已尝试发送，但电脑端无法确认文本光标，手机文本已保留。若已经粘贴成功，可手动清空。";
         } else {
-          statusEl.textContent = "电脑当前没有检测到可输入文字的位置，文本已保留。请先把电脑光标放到文字框里。";
+          statusEl.textContent = "没有可发送的文字";
         }
       } catch (error) {
         statusEl.textContent = "发送失败，文本已保留：" + (error && error.message ? error.message : error);
