@@ -68,7 +68,7 @@ PHONE_PAGE = r"""
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body { margin: 0; min-height: 100vh; background: #f6f7f9; color: #16181d; }
-    main { min-height: 100vh; padding: 22px 20px 130px; display: flex; flex-direction: column; gap: 14px; }
+    main { min-height: 100vh; padding: 22px 20px 150px; display: flex; flex-direction: column; gap: 14px; }
     h1 { font-size: 24px; margin: 0; }
     .hint { margin: 0; color: #687083; line-height: 1.55; }
     .status { min-height: 26px; font-weight: 700; color: #2454d6; line-height: 1.45; }
@@ -80,14 +80,17 @@ PHONE_PAGE = r"""
       position: fixed; left: 0; right: 0; bottom: 0; padding: 16px 18px calc(18px + env(safe-area-inset-bottom));
       background: rgba(246,247,249,.94); backdrop-filter: blur(14px); border-top: 1px solid #dfe3ec;
     }
-    button { width: 100%; height: 58px; border: 0; border-radius: 8px; font-size: 18px; font-weight: 800; }
+    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    button { height: 58px; border: 0; border-radius: 8px; font-size: 18px; font-weight: 800; }
     button:disabled { opacity: .7; }
     #send { background: #1f6feb; color: white; }
+    #clear { background: #e7eaf1; color: #2f3748; }
     @media (prefers-color-scheme: dark) {
       body { background: #111318; color: #f2f4f8; }
       textarea { background: #181b22; border-color: #303642; }
       .dock { background: rgba(17,19,24,.92); border-top-color: #303642; }
       .hint { color: #a8b0c2; }
+      #clear { background: #252a34; color: #f2f4f8; }
     }
   </style>
 </head>
@@ -99,13 +102,17 @@ PHONE_PAGE = r"""
     <textarea id="text" autofocus placeholder="在这里输入，或使用手机语音输入法"></textarea>
   </main>
   <div class="dock">
-    <button id="send" type="button">发送到电脑</button>
+    <div class="actions">
+      <button id="clear" type="button">清空</button>
+      <button id="send" type="button">发送到电脑</button>
+    </div>
   </div>
 
   <script>
     const textEl = document.querySelector("#text");
     const statusEl = document.querySelector("#status");
     const sendButton = document.querySelector("#send");
+    const clearButton = document.querySelector("#clear");
 
     sendButton.addEventListener("click", async () => {
       const text = textEl.value.trim();
@@ -134,6 +141,12 @@ PHONE_PAGE = r"""
       } finally {
         sendButton.disabled = false;
       }
+    });
+
+    clearButton.addEventListener("click", () => {
+      textEl.value = "";
+      textEl.focus();
+      statusEl.textContent = "已清空";
     });
   </script>
 </body>
